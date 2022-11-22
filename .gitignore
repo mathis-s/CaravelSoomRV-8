@@ -6,3 +6,8 @@
 *.lst
 *.vcd
 *.gtkw
+dependencies
+caravel
+mgmt_core_wrapper
+deps
+venv

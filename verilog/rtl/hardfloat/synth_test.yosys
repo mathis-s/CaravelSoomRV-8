@@ -1,0 +1,18 @@
+
+read_verilog HardFloat_primitives.v
+read_verilog HardFloat_rawFN.v
+read_verilog isSigNaNRecFN.v
+ 
+read_verilog mulRecFN.v
+read_verilog mulAddRecFN.v
+read_verilog addRecFN.v
+
+hierarchy -check -top mulAddRecFN
+flatten
+proc; opt; fsm; opt; memory; opt
+techmap; opt
+dfflibmap -liberty /home/m/Builds/CaravalPDK/sky130B/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty /home/m/Builds/CaravalPDK/sky130B/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+clean
+show -format dot mulAddRecFN
+stat

@@ -3,7 +3,7 @@
     "VERILOG_FILES": ["dir::../../verilog/rtl/defines.v", "dir::../../verilog/rtl/user_project_wrapper.v"],
     "CLOCK_PERIOD": 10,
     "CLOCK_PORT": "user_clock2",
-    "CLOCK_NET": "mprj.clk",
+    "CLOCK_NET": "user_clock2",
     "FP_PDN_MACRO_HOOKS": "mprj vccd1 vssd1 vccd1 vssd1",
     "MACRO_PLACEMENT_CFG": "dir::macro.cfg",
     "VERILOG_FILES_BLACKBOX": ["dir::../../verilog/rtl/defines.v", "dir::../../verilog/rtl/user_proj_example.v"],
