@@ -88,23 +88,9 @@ module FPU (
 		.out(addSub),
 		.exceptionFlags(addSubFlags)
 	);
-	wire [32:0] mul;
-	wire [4:0] mulFlags;
-	mulRecFN #(
-		8,
-		24
-	) mulRec(
-		.control(0),
-		.a(srcArec),
-		.b(srcBrec),
-		.roundingMode(rm),
-		.out(mul),
-		.exceptionFlags(mulFlags)
-	);
 	reg [32:0] recResult;
 	always @(*)
 		case (IN_uop[70-:6])
-			6'd6: recResult = mul;
 			6'd20, 6'd19: recResult = fromInt;
 			default: recResult = addSub;
 		endcase
@@ -128,7 +114,7 @@ module FPU (
 			OUT_uop[36-:32] <= IN_uop[134-:32];
 			OUT_uop[1] <= 0;
 			case (IN_uop[70-:6])
-				6'd4, 6'd5, 6'd20, 6'd19, 6'd6: OUT_uop[87-:32] <= fpResult;
+				6'd4, 6'd5, 6'd20, 6'd19: OUT_uop[87-:32] <= fpResult;
 				6'd15: OUT_uop[87-:32] <= {31'b0000000000000000000000000000000, equal};
 				6'd16: OUT_uop[87-:32] <= {31'b0000000000000000000000000000000, equal || lessThan};
 				6'd17: OUT_uop[87-:32] <= {31'b0000000000000000000000000000000, lessThan};

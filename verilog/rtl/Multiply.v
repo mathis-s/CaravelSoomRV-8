@@ -23,6 +23,7 @@ module Multiply (
 		if (rst) begin
 			for (i = 0; i < NUM_STAGES; i = i + 1)
 				pl[i][0] <= 0;
+			OUT_uop[0] <= 0;
 		end
 		else begin
 			if ((en && IN_uop[0]) && (!IN_branch[0] || ($signed(IN_uop[52-:7] - IN_branch[43-:7]) <= 0))) begin

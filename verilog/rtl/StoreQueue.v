@@ -17,7 +17,7 @@ module StoreQueue (
 );
 	parameter NUM_PORTS = 2;
 	parameter NUM_PORTS_LD = 1;
-	parameter NUM_ENTRIES = 20;
+	parameter NUM_ENTRIES = 24;
 	input wire clk;
 	input wire rst;
 	input wire IN_disable;

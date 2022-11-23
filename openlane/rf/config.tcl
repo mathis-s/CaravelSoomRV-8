@@ -29,8 +29,9 @@ set ::env(VERILOG_FILES) "\
 
 
 set ::env(VERILOG_FILES_BLACKBOX) "\
-    $::env(PDK_ROOT)/sky130B/libs.ref/sky130_fd_sc_hd/verilog/sky130_fd_sc_hd.v"
+    $::env(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/sky130_fd_sc_hd.v"
 
+set ::env(SYNTH_READ_BLACKBOX_LIB) 1
 set ::env(DESIGN_IS_CORE) 0
 
 set ::env(ROUTING_CORES) 14
@@ -68,7 +69,7 @@ set ::env(RT_MAX_LAYER) {met4}
 set ::env(VDD_NETS) [list {vccd1}]
 set ::env(GND_NETS) [list {vssd1}]
 
-set ::env(DIODE_INSERTION_STRATEGY) 2
+set ::env(DIODE_INSERTION_STRATEGY) 3
 # If you're going to use multiple power domains, then disable cvc run.
 set ::env(RUN_CVC) 1
 set ::env(QUIT_ON_MAGIC_DRC) 0

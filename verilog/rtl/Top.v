@@ -68,6 +68,8 @@ module Top (
 	wire CORE_instrReadEnable;
 	wire [27:0] CORE_instrReadAddress;
 	wire [127:0] CORE_instrReadData;
+	wire SPI_mosi;
+	wire SPI_clk;
 	Core core(
 		.clk(clk),
 		.rst(rst),
@@ -83,6 +85,8 @@ module Top (
 		.OUT_instrAddr(CORE_instrReadAddress),
 		.OUT_instrReadEnable(CORE_instrReadEnable),
 		.OUT_halt(OUT_halt),
+		.OUT_SPI_clk(SPI_clk),
+		.OUT_SPI_mosi(SPI_mosi),
 		.IN_SPI_miso(1'b0),
 		.OUT_MC_ce(MC_ce),
 		.OUT_MC_we(MC_we),
@@ -92,6 +96,16 @@ module Top (
 		.IN_MC_progress(MC_progress),
 		.IN_MC_busy(MC_busy)
 	);
+	integer spiCnt = 0;
+	reg [7:0] spiByte = 0;
+	always @(posedge SPI_clk) begin
+		spiByte = {spiByte[6:0], SPI_mosi};
+		spiCnt = spiCnt + 1;
+		if (spiCnt == 8) begin
+			$write("%c", spiByte);
+			spiCnt = 0;
+		end
+	end
 	wire [67:0] DC_if;
 	assign DC_if = (MC_DC_used[0] ? MC_DC_if[0] : CORE_DC_if);
 	MemRTL dcache(

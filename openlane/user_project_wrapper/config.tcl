@@ -16,7 +16,7 @@
 # Base Configurations. Don't Touch
 # section begin
 
-set ::env(PDK) "sky130B"
+set ::env(PDK) "sky130A"
 set ::env(STD_CELL_LIBRARY) "sky130_fd_sc_hd"
 set ::env(ROUTING_CORES) 14
 
@@ -74,6 +74,7 @@ set ::env(VERILOG_FILES) "\
 	$script_dir/../../../../verilog/rtl/BranchPredictionTable.v \
 	$script_dir/../../../../verilog/rtl/ReturnStack.v \
 	$script_dir/../../../../verilog/rtl/FPU.v \
+	$script_dir/../../../../verilog/rtl/FMul.v \
 	$script_dir/../../../../verilog/rtl/FDiv.v \
     $script_dir/../../../../verilog/rtl/hardfloat/addRecFN.v \
     $script_dir/../../../../verilog/rtl/hardfloat/compareRecFN.v \
@@ -113,15 +114,15 @@ set ::env(PL_MACRO_CHANNEL) {20 20}
 set ::env(VERILOG_FILES_BLACKBOX) "\
 	$::env(CARAVEL_ROOT)/verilog/rtl/defines.v \
     $::env(PDK_ROOT)/sky130B/libs.ref/sky130_sram_macros/verilog/sky130_sram_2kbyte_1rw1r_32x512_8.v \
-    /home/m/Builds/Caraval/openlane/rf/runs/RUN_2022.10.21_13.44.58/results/final/verilog/gl/RF.v"
+    $script_dir/../../../../verilog/gl/RF.v"
 
 set ::env(EXTRA_LEFS) "\
     $::env(PDK_ROOT)/sky130B/libs.ref/sky130_sram_macros/lef/sky130_sram_2kbyte_1rw1r_32x512_8.lef \
-    /home/m/Builds/Caraval/openlane/rf/runs/RUN_2022.10.21_13.44.58/results/final/lef/RF.lef"
+    $script_dir/../../../../lef/RF.lef"
 
 set ::env(EXTRA_GDS_FILES) "\
     $::env(PDK_ROOT)/sky130B/libs.ref/sky130_sram_macros/gds/sky130_sram_2kbyte_1rw1r_32x512_8.gds \
-    /home/m/Builds/Caraval/openlane/rf/runs/RUN_2022.10.21_13.44.58/results/final/gds/RF.gds"
+    $script_dir/../../../../gds/RF.gds"
 
 set ::env(GRT_OVERFLOW_ITERS) 60
 set ::env(GRT_ALLOW_CONGESTION) 1

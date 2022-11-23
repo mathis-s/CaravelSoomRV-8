@@ -216,7 +216,7 @@ module Core (
 	);
 	wire ROB_disableIFetch;
 	assign ifetchEn = (!PD_full && !PC_stall) && !ROB_disableIFetch;
-	wire [267:0] DE_uop;
+	wire [271:0] DE_uop;
 	InstrDecoder idec(
 		.clk(clk),
 		.rst(rst),
@@ -229,7 +229,7 @@ module Core (
 		.OUT_decBranchFetchID(DEC_branchFetchID),
 		.OUT_uop(DE_uop)
 	);
-	wire [399:0] RN_uop;
+	wire [403:0] RN_uop;
 	wire [3:0] RN_uopValid;
 	wire [6:0] RN_nextLoadSqN;
 	wire [6:0] RN_nextStoreSqN;
@@ -258,15 +258,15 @@ module Core (
 		.OUT_nextStoreSqN(RN_nextStoreSqN)
 	);
 	wire [3:0] RV_uopValid;
-	wire [399:0] RV_uop;
+	wire [403:0] RV_uop;
 	wire [3:0] stall;
 	assign stall[0] = 0;
 	assign stall[1] = 0;
 	wire IQ0_full;
 	wire DIV_busy;
 	wire [795:0] LD_uop;
-	wire [27:0] enabledXUs;
-	wire DIV_doNotIssue = (DIV_busy || (LD_uop[0] && enabledXUs[4])) || (RV_uopValid[0] && (RV_uop[3-:3] == 3'd4));
+	wire [31:0] enabledXUs;
+	wire DIV_doNotIssue = (DIV_busy || (LD_uop[0] && enabledXUs[4])) || (RV_uopValid[0] && (RV_uop[4-:4] == 4'd4));
 	wire [6:0] LB_maxLoadSqN;
 	wire [6:0] LSU_loadFwdTag;
 	wire LSU_loadFwdValid;
@@ -276,9 +276,10 @@ module Core (
 		.NUM_UOPS(4),
 		.RESULT_BUS_COUNT(4),
 		.IMM_BITS(32),
-		.FU0(3'd0),
-		.FU1(3'd4),
-		.FU2(3'd5),
+		.FU0(4'd0),
+		.FU1(4'd4),
+		.FU2(4'd5),
+		.FU3(4'd5),
 		.FU0_SPLIT(1),
 		.FU0_ORDER(0),
 		.FU1_DLY(33)
@@ -302,21 +303,22 @@ module Core (
 		.IN_maxStoreSqN(SQ_maxStoreSqN),
 		.IN_maxLoadSqN(LB_maxLoadSqN),
 		.OUT_valid(RV_uopValid[0]),
-		.OUT_uop(RV_uop[0+:100]),
+		.OUT_uop(RV_uop[0+:101]),
 		.OUT_full(IQ0_full)
 	);
 	wire IQ1_full;
 	wire FDIV_busy;
-	wire FDIV_doNotIssue = (FDIV_busy || (LD_uop[199] && enabledXUs[13])) || (RV_uopValid[1] && (RV_uop[103-:3] == 3'd7));
+	wire FDIV_doNotIssue = (FDIV_busy || (LD_uop[199] && enabledXUs[14])) || (RV_uopValid[1] && (RV_uop[105-:4] == 4'd6));
 	wire MUL_doNotIssue = 0;
 	IssueQueue #(
 		.SIZE(8),
 		.NUM_UOPS(4),
 		.RESULT_BUS_COUNT(4),
 		.IMM_BITS(32),
-		.FU0(3'd0),
-		.FU1(3'd3),
-		.FU2(3'd7),
+		.FU0(4'd0),
+		.FU1(4'd3),
+		.FU2(4'd6),
+		.FU3(4'd7),
 		.FU0_SPLIT(1),
 		.FU0_ORDER(1),
 		.FU1_DLY(5)
@@ -340,7 +342,7 @@ module Core (
 		.IN_maxStoreSqN(SQ_maxStoreSqN),
 		.IN_maxLoadSqN(LB_maxLoadSqN),
 		.OUT_valid(RV_uopValid[1]),
-		.OUT_uop(RV_uop[100+:100]),
+		.OUT_uop(RV_uop[101+:101]),
 		.OUT_full(IQ1_full)
 	);
 	wire IQ2_full;
@@ -349,9 +351,10 @@ module Core (
 		.NUM_UOPS(4),
 		.RESULT_BUS_COUNT(4),
 		.IMM_BITS(12),
-		.FU0(3'd1),
-		.FU1(3'd1),
-		.FU2(3'd1),
+		.FU0(4'd1),
+		.FU1(4'd1),
+		.FU2(4'd1),
+		.FU3(4'd1),
 		.FU0_SPLIT(0),
 		.FU0_ORDER(0),
 		.FU1_DLY(0)
@@ -375,7 +378,7 @@ module Core (
 		.IN_maxStoreSqN(SQ_maxStoreSqN),
 		.IN_maxLoadSqN(LB_maxLoadSqN),
 		.OUT_valid(RV_uopValid[2]),
-		.OUT_uop(RV_uop[200+:100]),
+		.OUT_uop(RV_uop[202+:101]),
 		.OUT_full(IQ2_full)
 	);
 	wire IQ3_full;
@@ -384,9 +387,10 @@ module Core (
 		.NUM_UOPS(4),
 		.RESULT_BUS_COUNT(4),
 		.IMM_BITS(12),
-		.FU0(3'd2),
-		.FU1(3'd2),
-		.FU2(3'd2),
+		.FU0(4'd2),
+		.FU1(4'd2),
+		.FU2(4'd2),
+		.FU3(4'd2),
 		.FU0_SPLIT(0),
 		.FU0_ORDER(0),
 		.FU1_DLY(0)
@@ -410,7 +414,7 @@ module Core (
 		.IN_maxStoreSqN(SQ_maxStoreSqN),
 		.IN_maxLoadSqN(LB_maxLoadSqN),
 		.OUT_valid(RV_uopValid[3]),
-		.OUT_uop(RV_uop[300+:100]),
+		.OUT_uop(RV_uop[303+:101]),
 		.OUT_full(IQ3_full)
 	);
 	wire [47:0] RF_readAddress;
@@ -446,7 +450,7 @@ module Core (
 		.raddr7(RF_readAddress[42+:6]),
 		.rdata7(RF_readData[224+:32])
 	);
-	wire [11:0] LD_fu;
+	wire [15:0] LD_fu;
 	wire [63:0] LD_zcFwdResult;
 	wire [13:0] LD_zcFwdTag;
 	wire [1:0] LD_zcFwdValid;
@@ -541,7 +545,7 @@ module Core (
 	AGU aguLD(
 		.clk(clk),
 		.rst(rst),
-		.en(enabledXUs[15]),
+		.en(enabledXUs[17]),
 		.stall(stall[2]),
 		.IN_branch(branch),
 		.IN_uop(LD_uop[398+:199]),
@@ -552,7 +556,7 @@ module Core (
 	StoreAGU aguST(
 		.clk(clk),
 		.rst(rst),
-		.en(enabledXUs[23]),
+		.en(enabledXUs[26]),
 		.stall(stall[3]),
 		.IN_branch(branch),
 		.OUT_zcFwd(AGU_ST_zcFwd),
@@ -592,7 +596,7 @@ module Core (
 		.OUT_lookupMask(SQ_lookupMask),
 		.OUT_flush(SQ_flush),
 		.OUT_maxStoreSqN(SQ_maxStoreSqN),
-		.IN_IO_busy(IO_busy)
+		.IN_IO_busy((IO_busy || SQ_uop[0]) || CC_uopSt[0])
 	);
 	LoadStoreUnit lsu(
 		.clk(clk),
@@ -618,7 +622,7 @@ module Core (
 	wire [87:0] INT1_uop;
 	IntALU ialu1(
 		.clk(clk),
-		.en(enabledXUs[7]),
+		.en(enabledXUs[8]),
 		.rst(rst),
 		.IN_wbStall(1'b0),
 		.IN_uop(LD_uop[199+:199]),
@@ -637,24 +641,33 @@ module Core (
 	Multiply mul(
 		.clk(clk),
 		.rst(rst),
-		.en(enabledXUs[10]),
+		.en(enabledXUs[11]),
 		.OUT_busy(MUL_busy),
 		.IN_branch(branch),
 		.IN_uop(LD_uop[199+:199]),
 		.OUT_uop(MUL_uop)
 	);
+	wire [87:0] FMUL_uop;
+	FMul fmul(
+		.clk(clk),
+		.rst(rst),
+		.en(enabledXUs[15]),
+		.IN_branch(branch),
+		.IN_uop(LD_uop[199+:199]),
+		.OUT_uop(FMUL_uop)
+	);
 	wire [87:0] FDIV_uop;
 	FDiv fdiv(
 		.clk(clk),
 		.rst(rst),
-		.en(enabledXUs[13]),
-		.IN_wbAvail(!INT1_uop[0] && !MUL_uop[0]),
+		.en(enabledXUs[14]),
+		.IN_wbAvail((!INT1_uop[0] && !MUL_uop[0]) && !FMUL_uop[0]),
 		.OUT_busy(FDIV_busy),
 		.IN_branch(branch),
 		.IN_uop(LD_uop[199+:199]),
 		.OUT_uop(FDIV_uop)
 	);
-	assign wbUOp[88+:88] = (INT1_uop[0] ? INT1_uop : (MUL_uop[0] ? MUL_uop : FDIV_uop));
+	assign wbUOp[88+:88] = (INT1_uop[0] ? INT1_uop : (MUL_uop[0] ? MUL_uop : (FMUL_uop[0] ? FMUL_uop : FDIV_uop)));
 	wire [6:0] ROB_maxSqN;
 	wire [31:0] CR_irqAddr;
 	wire [2:0] ROB_irqFlags;
@@ -705,7 +718,7 @@ module Core (
 		.IN_comValid({comUOps[0], comUOps[23], comUOps[46], comUOps[69]}),
 		.IN_branchMispred((branchProvs[76] || branchProvs[0]) && !mispredFlush),
 		.IN_wbValid({wbUOp[0], wbUOp[88], wbUOp[176], wbUOp[264]}),
-		.IN_ifValid({DE_uop[0] && !FUSE_full, DE_uop[67] && !FUSE_full, DE_uop[134] && !FUSE_full, DE_uop[201] && !FUSE_full}),
+		.IN_ifValid({DE_uop[0] && !FUSE_full, DE_uop[68] && !FUSE_full, DE_uop[136] && !FUSE_full, DE_uop[204] && !FUSE_full}),
 		.IN_comBranch({comUOps[0] && comUOps[3], comUOps[23] && comUOps[26], comUOps[46] && comUOps[49], comUOps[69] && comUOps[72]}),
 		.OUT_irqAddr(CR_irqAddr),
 		.IN_irqTaken(ROB_irqTaken),

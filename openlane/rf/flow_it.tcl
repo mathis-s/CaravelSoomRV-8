@@ -1,3 +1,4 @@
+set global_verbose_level 0
 run_synthesis
 run_floorplan
 manual_macro_placement

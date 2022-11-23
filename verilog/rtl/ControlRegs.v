@@ -64,7 +64,7 @@ module ControlRegs (
 	assign OUT_irqAddr = cRegs[0];
 	reg [5:0] spiCnt;
 	reg [25:0] tmrCnt;
-	assign OUT_IO_busy = spiCnt != 0;
+	assign OUT_IO_busy = ((spiCnt > 0) || !IN_we) || !weReg;
 	reg [3:0] ifetchValidReg;
 	always @(posedge clk) begin
 		OUT_tmrIRQ <= 0;

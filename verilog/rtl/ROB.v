@@ -31,7 +31,7 @@ module ROB (
 	parameter WIDTH_WB = 4;
 	input wire clk;
 	input wire rst;
-	input wire [(WIDTH * 100) - 1:0] IN_uop;
+	input wire [(WIDTH * 101) - 1:0] IN_uop;
 	input wire [WIDTH - 1:0] IN_uopValid;
 	input wire [(WIDTH_WB * 88) - 1:0] IN_wbUOps;
 	input wire [75:0] IN_branch;
@@ -58,17 +58,17 @@ module ROB (
 	integer i;
 	integer j;
 	localparam ID_LEN = $clog2(LENGTH);
-	reg [99:0] rnUOpSorted [WIDTH - 1:0];
+	reg [100:0] rnUOpSorted [WIDTH - 1:0];
 	reg rnUOpValidSorted [WIDTH - 1:0];
 	always @(*)
 		for (i = 0; i < WIDTH; i = i + 1)
 			begin
 				rnUOpValidSorted[i] = 0;
-				rnUOpSorted[i] = 100'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
+				rnUOpSorted[i] = 101'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
 				for (j = 0; j < WIDTH; j = j + 1)
-					if (IN_uopValid[j] && (IN_uop[(j * 100) + 45-:2] == i[1:0])) begin
+					if (IN_uopValid[j] && (IN_uop[(j * 101) + 46-:2] == i[1:0])) begin
 						rnUOpValidSorted[i] = 1;
-						rnUOpSorted[i] = IN_uop[j * 100+:100];
+						rnUOpSorted[i] = IN_uop[j * 101+:101];
 					end
 			end
 	reg [26:0] entries [LENGTH - 1:0];
@@ -280,16 +280,16 @@ module ROB (
 			for (i = 0; i < WIDTH; i = i + 1)
 				if (rnUOpValidSorted[i] && !IN_branch[0]) begin : sv2v_autoblock_4
 					reg [5:0] id;
-					id = {rnUOpSorted[i][49:46], i[1:0]};
+					id = {rnUOpSorted[i][50:47], i[1:0]};
 					entries[id][1] <= 1;
-					entries[id][23-:7] <= rnUOpSorted[i][43-:7];
-					entries[id][15-:5] <= rnUOpSorted[i][36-:5];
-					entries[id][16] <= rnUOpSorted[i][50];
+					entries[id][23-:7] <= rnUOpSorted[i][44-:7];
+					entries[id][15-:5] <= rnUOpSorted[i][37-:5];
+					entries[id][16] <= rnUOpSorted[i][51];
 					entries[id][2] <= rnUOpSorted[i][0];
-					entries[id][7-:5] <= rnUOpSorted[i][25-:5];
-					entries[id][0] <= rnUOpSorted[i][3-:3] == 3'd6;
+					entries[id][7-:5] <= rnUOpSorted[i][26-:5];
+					entries[id][0] <= rnUOpSorted[i][4-:4] == 4'd8;
 					entries[id][26-:3] <= 3'd0;
-					entries[id][10-:3] <= rnUOpSorted[i][20-:3];
+					entries[id][10-:3] <= rnUOpSorted[i][21-:3];
 				end
 			for (i = 0; i < WIDTH_WB; i = i + 1)
 				if (IN_wbUOps[i * 88] && (!IN_branch[0] || ($signed(IN_wbUOps[(i * 88) + 43-:7] - IN_branch[43-:7]) <= 0))) begin : sv2v_autoblock_5
