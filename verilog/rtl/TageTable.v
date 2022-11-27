@@ -19,7 +19,7 @@ module TageTable (
 	parameter TAG_SIZE = 8;
 	parameter USF_SIZE = 2;
 	parameter CNT_SIZE = 2;
-	parameter INTERVAL = 10;
+	parameter INTERVAL = 20;
 	input wire clk;
 	input wire rst;
 	input wire [5:0] IN_readAddr;

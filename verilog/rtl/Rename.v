@@ -142,7 +142,7 @@ module Rename (
 	always @(*) begin
 		OUT_stall = 0;
 		for (i = 0; i < WIDTH_UOPS; i = i + 1)
-			if ((!TB_tagsValid[i] && IN_uop[i * 68]) && (IN_uop[(i * 68) + 24-:5] != 0))
+			if (((!TB_tagsValid[i] && IN_uop[i * 68]) && (IN_uop[(i * 68) + 24-:5] != 0)) && (IN_uop[(i * 68) + 13-:4] != 4'd8))
 				OUT_stall = 1;
 	end
 	reg intOrder;

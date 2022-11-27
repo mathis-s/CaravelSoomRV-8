@@ -10,6 +10,7 @@
 -v $(USER_PROJECT_VERILOG)/rtl/Rename.v
 -v $(USER_PROJECT_VERILOG)/rtl/FPU.v
 -v $(USER_PROJECT_VERILOG)/rtl/FDiv.v
+-v $(USER_PROJECT_VERILOG)/rtl/FMul.v
 -v $(USER_PROJECT_VERILOG)/gl/RF.v
 -v $(USER_PROJECT_VERILOG)/rtl/ROB.v
 -v $(USER_PROJECT_VERILOG)/rtl/BranchPredictor.v

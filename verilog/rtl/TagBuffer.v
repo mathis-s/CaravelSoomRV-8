@@ -43,17 +43,6 @@ module TagBuffer (
 	always @(*)
 		for (i = 0; i < NUM_UOPS; i = i + 1)
 			OUT_issueTagsValid[i] = free > i[6:0];
-	reg [6:0] cnt;
-	always @(*) begin
-		cnt = 0;
-		if (!rst) begin
-			for (i = 0; i < 64; i = i + 1)
-				if (!tags[i][1])
-					cnt = cnt + 1;
-			if (cnt != free)
-				$display("%d %d", cnt, free);
-		end
-	end
 	always @(posedge clk)
 		if (rst) begin
 			for (i = 0; i < 64; i = i + 1)

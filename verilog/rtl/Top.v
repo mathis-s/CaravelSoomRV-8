@@ -135,7 +135,4 @@ module Top (
 		.IN_addr1({CORE_instrReadAddress[7:0], 1'b0}),
 		.OUT_data1(CORE_instrReadData[63:0])
 	);
-	always @(posedge clk)
-		if (((!CORE_DC_if[67] && !CORE_DC_if[66]) && (CORE_DC_if[65-:4] == 4'b0001)) && (CORE_DC_if[61-:30] == 30'h3f800000))
-			$write("%c", CORE_DC_if[7:0]);
 endmodule

@@ -181,9 +181,9 @@ module CacheController (
 			if (IN_branch[0] && ($signed(cmissUOpLd[44-:7] - IN_branch[43-:7]) > 0))
 				cmissUOpLd[0] <= 0;
 			if ((!OUT_stall[0] && IN_uopLd[0]) && (!IN_branch[0] || ($signed(IN_uopLd[44-:7] - IN_branch[43-:7]) <= 0))) begin
-				if ((IN_uopLd[2] || cacheTableEntryFound[0]) || (IN_uopLd[162:155] >= 8'hfe)) begin
+				if ((IN_uopLd[2] || cacheTableEntryFound[0]) || (IN_uopLd[162:155] >= 8'hff)) begin
 					OUT_uopLd <= IN_uopLd;
-					if ((IN_uopLd[162:155] < 8'hfe) && !IN_uopLd[2]) begin
+					if ((IN_uopLd[162:155] < 8'hff) && !IN_uopLd[2]) begin
 						OUT_uopLd[162-:32] <= {20'b00000000000000000000, cacheTableEntry[0], IN_uopLd[138:131]};
 						ctable[cacheTableEntry[0]][0] <= 1;
 					end

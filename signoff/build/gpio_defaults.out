@@ -1,0 +1,5 @@
+Step 1:  Create new cells for new GPIO default vectors.
+Traceback (most recent call last):
+  File "/home/m/Builds/CaravelSoomRV-8/caravel/scripts/gen_gpio_defaults.py", line 246, in <module>
+    with open(caravel_path + '/mag/gpio_defaults_block.mag', 'r') as ifile:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/m/Builds/CaravelSoomRV-8/caravel/mag/gpio_defaults_block.mag'

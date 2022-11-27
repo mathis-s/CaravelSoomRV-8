@@ -36,6 +36,18 @@ module core_tb;
 
 	always #30 clock <= (clock === 1'b0);
 
+    integer spiCnt = 0;
+    reg[7:0] spiByte = 0;
+    always@(posedge mprj_io[4]) begin
+        spiByte = {spiByte[6:0], mprj_io[1]};
+        spiCnt = spiCnt + 1;
+        //$display("cnt %d %x", spiCnt, mprj_io[25]);
+        if (spiCnt == 8) begin
+            $write("%c", spiByte);
+            spiCnt = 0;
+        end
+    end
+
     ExternalMemorySim extmem
     (
         .clk(clock),
@@ -144,10 +156,15 @@ module core_tb;
 
 	initial begin
 		$dumpfile("core.vcd");
-		$dumpvars(0, core_tb);
+		$dumpvars(1, core_tb);
+		$dumpvars(0, core_tb.uut.mprj);
+        
+        $dumpoff;
+        repeat (65535) @(posedge clock);
+        $dumpon;
 
 		// Repeat cycles of 1000 clock edges as needed to complete testbench
-		repeat (1) begin
+		repeat (64) begin
 			repeat (1000) @(posedge clock);
 			// $display("+1000 cycles");
 		end
@@ -178,6 +195,16 @@ module core_tb;
 		#200;
 		power2 <= 1'b1;
 	end
+
+    initial begin		// Power-up sequence
+		power3 <= 1'b0;
+		power4 <= 1'b0;
+		#200;
+		power3 <= 1'b1;
+		#200;
+		power4 <= 1'b1;
+	end
+
 
 	wire flash_csb;
 	wire flash_clk;

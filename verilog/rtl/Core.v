@@ -13,6 +13,7 @@ module Core (
 	OUT_instrAddr,
 	OUT_instrReadEnable,
 	OUT_halt,
+	OUT_SPI_cs,
 	OUT_SPI_clk,
 	OUT_SPI_mosi,
 	IN_SPI_miso,
@@ -40,6 +41,7 @@ module Core (
 	output wire [27:0] OUT_instrAddr;
 	output wire OUT_instrReadEnable;
 	output wire OUT_halt;
+	output wire OUT_SPI_cs;
 	output wire OUT_SPI_clk;
 	output wire OUT_SPI_mosi;
 	input wire IN_SPI_miso;
@@ -217,6 +219,7 @@ module Core (
 	wire ROB_disableIFetch;
 	assign ifetchEn = (!PD_full && !PC_stall) && !ROB_disableIFetch;
 	wire [271:0] DE_uop;
+	wire [7:0] CR_mode;
 	InstrDecoder idec(
 		.clk(clk),
 		.rst(rst),
@@ -224,6 +227,7 @@ module Core (
 		.en(!FUSE_full),
 		.IN_instrs(PD_instrs),
 		.IN_indirBranchTarget(IBP_predDst),
+		.IN_enCustom(!CR_mode[3'd7]),
 		.OUT_decBranch(DEC_branch),
 		.OUT_decBranchDst(DEC_branchDst),
 		.OUT_decBranchFetchID(DEC_branchFetchID),
@@ -542,22 +546,28 @@ module Core (
 		.IN_fence(ROB_startFence),
 		.OUT_fenceBusy(CC_fenceBusy)
 	);
+	wire [63:0] CR_rmask;
 	AGU aguLD(
 		.clk(clk),
 		.rst(rst),
 		.en(enabledXUs[17]),
 		.stall(stall[2]),
+		.IN_mode(CR_mode),
+		.IN_rmask(CR_rmask),
 		.IN_branch(branch),
 		.IN_uop(LD_uop[398+:199]),
 		.OUT_uop(AGU_LD_uop)
 	);
 	wire [162:0] AGU_ST_uop;
 	wire [39:0] AGU_ST_zcFwd;
+	wire [63:0] CR_wmask;
 	StoreAGU aguST(
 		.clk(clk),
 		.rst(rst),
 		.en(enabledXUs[26]),
 		.stall(stall[3]),
+		.IN_mode(CR_mode),
+		.IN_wmask(CR_wmask),
 		.IN_branch(branch),
 		.OUT_zcFwd(AGU_ST_zcFwd),
 		.IN_uop(LD_uop[597+:199]),
@@ -697,6 +707,7 @@ module Core (
 		.OUT_curFetchID(ROB_curFetchID),
 		.IN_irq(timerIRQ),
 		.IN_MEM_busy(MEMSUB_busy),
+		.IN_allowBreak(!CR_mode[3'd6]),
 		.OUT_fence(ROB_startFence),
 		.OUT_clearICache(ROB_clearICache),
 		.OUT_disableIFetch(ROB_disableIFetch),
@@ -725,9 +736,13 @@ module Core (
 		.IN_irqSrc(ROB_irqSrc),
 		.IN_irqFlags(ROB_irqFlags),
 		.IN_irqMemAddr(ROB_irqMemAddr),
+		.OUT_SPI_cs(OUT_SPI_cs),
 		.OUT_SPI_clk(OUT_SPI_clk),
 		.OUT_SPI_mosi(OUT_SPI_mosi),
 		.IN_SPI_miso(IN_SPI_miso),
+		.OUT_mode(CR_mode),
+		.OUT_wmask(CR_wmask),
+		.OUT_rmask(CR_rmask),
 		.OUT_tmrIRQ(timerIRQ),
 		.OUT_IO_busy(IO_busy)
 	);

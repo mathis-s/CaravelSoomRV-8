@@ -19,9 +19,13 @@ module ControlRegs (
 	IN_irqSrc,
 	IN_irqFlags,
 	IN_irqMemAddr,
+	OUT_SPI_cs,
 	OUT_SPI_clk,
 	OUT_SPI_mosi,
 	IN_SPI_miso,
+	OUT_mode,
+	OUT_wmask,
+	OUT_rmask,
 	OUT_tmrIRQ,
 	OUT_IO_busy
 );
@@ -47,9 +51,13 @@ module ControlRegs (
 	input wire [31:0] IN_irqSrc;
 	input wire [2:0] IN_irqFlags;
 	input wire [31:0] IN_irqMemAddr;
+	output reg OUT_SPI_cs;
 	output reg OUT_SPI_clk;
 	output reg OUT_SPI_mosi;
 	input wire IN_SPI_miso;
+	output wire [7:0] OUT_mode;
+	output wire [63:0] OUT_wmask;
+	output wire [63:0] OUT_rmask;
 	output reg OUT_tmrIRQ;
 	output wire OUT_IO_busy;
 	integer i;
@@ -61,11 +69,14 @@ module ControlRegs (
 	reg [31:0] dataReg;
 	reg [63:0] cRegs64 [5:0];
 	reg [31:0] cRegs [15:0];
-	assign OUT_irqAddr = cRegs[0];
+	assign OUT_irqAddr = cRegs[1];
 	reg [5:0] spiCnt;
 	reg [25:0] tmrCnt;
 	assign OUT_IO_busy = ((spiCnt > 0) || !IN_we) || !weReg;
 	reg [3:0] ifetchValidReg;
+	assign OUT_rmask = {cRegs[5], cRegs[4]};
+	assign OUT_wmask = {cRegs[7], cRegs[6]};
+	assign OUT_mode = cRegs[3][31:24];
 	always @(posedge clk) begin
 		OUT_tmrIRQ <= 0;
 		ifetchValidReg <= IN_ifValid;
@@ -77,17 +88,21 @@ module ControlRegs (
 				cRegs[i] <= 0;
 			OUT_SPI_clk <= 0;
 			spiCnt <= 0;
+			OUT_SPI_cs <= 1;
+			OUT_SPI_mosi <= 0;
 		end
 		else begin
 			if (OUT_SPI_clk == 1) begin
 				OUT_SPI_clk <= 0;
-				OUT_SPI_mosi <= cRegs[4][31];
+				OUT_SPI_mosi <= cRegs[0][31];
 			end
 			else if (spiCnt != 0) begin
 				OUT_SPI_clk <= 1;
 				spiCnt <= spiCnt - 1;
-				cRegs[4] <= {cRegs[4][30:0], IN_SPI_miso};
+				cRegs[0] <= {cRegs[0][30:0], IN_SPI_miso};
 			end
+			if (spiCnt == 0)
+				OUT_SPI_cs <= 1;
 			if (!weReg)
 				if (writeAddrReg[5])
 					;
@@ -102,7 +117,7 @@ module ControlRegs (
 						cRegs[writeAddrReg[3:0]][31:24] <= dataReg[31:24];
 					if ((writeAddrReg[3:0] == 4'd3) && |wmReg[1:0])
 						tmrCnt <= 0;
-					if (writeAddrReg[4:0] == 5'd4) begin
+					if (writeAddrReg[4:0] == 0) begin
 						case (wmReg)
 							4'b1111: spiCnt <= 32;
 							4'b1100: spiCnt <= 16;
@@ -111,6 +126,7 @@ module ControlRegs (
 								;
 						endcase
 						OUT_SPI_mosi <= dataReg[31];
+						OUT_SPI_cs <= 0;
 					end
 				end
 			if (!reReg)
@@ -122,9 +138,18 @@ module ControlRegs (
 				end
 				else
 					OUT_data <= cRegs[readAddrReg[3:0]];
+			if (OUT_mode[0])
+				if ((cRegs[3][15:0] != 0) && (cRegs[3][15:0] == tmrCnt[25:10])) begin
+					OUT_tmrIRQ <= 1;
+					tmrCnt <= 0;
+				end
+				else
+					tmrCnt <= tmrCnt + 1;
 			if (IN_irqTaken) begin
-				cRegs[1] <= IN_irqSrc;
-				cRegs[2] <= {IN_irqMemAddr[31:2], IN_irqFlags[1:0]};
+				cRegs[2] <= IN_irqSrc;
+				cRegs[3][23:16] <= {6'b000000, IN_irqFlags[1:0]};
+				cRegs[3][31:24] <= 0;
+				tmrCnt <= 0;
 			end
 			reReg <= IN_re;
 			weReg <= IN_we;
@@ -132,14 +157,6 @@ module ControlRegs (
 			readAddrReg <= IN_readAddr;
 			writeAddrReg <= IN_writeAddr;
 			dataReg <= IN_data;
-			if ((cRegs[3][15:0] != 0) && (cRegs[3][15:0] == tmrCnt[25:10])) begin
-				OUT_tmrIRQ <= 1;
-				tmrCnt <= 0;
-			end
-			else if (IN_irqTaken)
-				tmrCnt <= 0;
-			else
-				tmrCnt <= tmrCnt + 1;
 			cRegs64[0] <= cRegs64[0] + 1;
 			cRegs64[1] = cRegs64[1] + 1;
 			for (i = 0; i < NUM_UOPS; i = i + 1)

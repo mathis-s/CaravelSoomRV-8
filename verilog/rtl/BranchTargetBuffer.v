@@ -12,7 +12,7 @@ module BranchTargetBuffer (
 	IN_BPT_branchTaken,
 	IN_btUpdate
 );
-	parameter NUM_ENTRIES = 64;
+	parameter NUM_ENTRIES = 128;
 	parameter ASSOC = 8;
 	input wire clk;
 	input wire rst;

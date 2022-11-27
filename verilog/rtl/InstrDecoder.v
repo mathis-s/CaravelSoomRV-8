@@ -5,13 +5,14 @@ module InstrDecoder (
 	IN_invalidate,
 	IN_instrs,
 	IN_indirBranchTarget,
+	IN_enCustom,
 	OUT_decBranch,
 	OUT_decBranchDst,
 	OUT_decBranchFetchID,
 	OUT_uop
 );
 	parameter NUM_UOPS = 4;
-	parameter DO_FUSE = 1;
+	parameter DO_FUSE = 0;
 	parameter FUSE_LUI = 0;
 	parameter FUSE_STORE_DATA = 0;
 	input wire clk;
@@ -20,6 +21,7 @@ module InstrDecoder (
 	input wire IN_invalidate;
 	input wire [(NUM_UOPS * 70) - 1:0] IN_instrs;
 	input wire [30:0] IN_indirBranchTarget;
+	input wire IN_enCustom;
 	output reg OUT_decBranch;
 	output reg [30:0] OUT_decBranchDst;
 	output reg [4:0] OUT_decBranchFetchID;
@@ -159,12 +161,29 @@ module InstrDecoder (
 								uop[25] = 0;
 								uop[24-:5] = 0;
 								uop[13-:4] = 4'd2;
-								case (instr[14-:3])
-									0: uop[19-:6] = 6'd0;
-									1: uop[19-:6] = 6'd1;
-									2: uop[19-:6] = 6'd2;
-								endcase
-								invalidEnc = ((instr[14-:3] != 0) && (instr[14-:3] != 1)) && (instr[14-:3] != 2);
+								if (IN_enCustom && 0) begin
+									invalidEnc = 0;
+									case (instr[14-:3])
+										0: uop[19-:6] = 6'd0;
+										1: uop[19-:6] = 6'd1;
+										2: uop[19-:6] = 6'd2;
+										3: invalidEnc = 1;
+										4: uop[19-:6] = 6'd7;
+										5: uop[19-:6] = 6'd8;
+										6: uop[19-:6] = 6'd9;
+										7: invalidEnc = 1;
+									endcase
+									if (instr[14])
+										uop[24-:5] = uop[35-:5];
+								end
+								else begin
+									case (instr[14-:3])
+										0: uop[19-:6] = 6'd0;
+										1: uop[19-:6] = 6'd1;
+										2: uop[19-:6] = 6'd2;
+									endcase
+									invalidEnc = ((instr[14-:3] != 0) && (instr[14-:3] != 1)) && (instr[14-:3] != 2);
+								end
 							end
 							7'b1100011: begin
 								uop[35-:5] = instr[19-:5];
@@ -172,10 +191,12 @@ module InstrDecoder (
 								uop[25] = 0;
 								uop[24-:5] = 0;
 								uop[13-:4] = 4'd0;
-								if ((((((DO_FUSE && (i != 0)) && uopsComb[i - 1][0]) && (uopsComb[i - 1][13-:4] == 4'd0)) && (uopsComb[i - 1][19-:6] == 6'd0)) && uopsComb[i - 1][25]) && (uopsComb[i - 1][35-:5] == uop[35-:5])) begin
+								invalidEnc = (uop[19-:6] == 2) || (uop[19-:6] == 3);
+								if (((((((((!invalidEnc && DO_FUSE) && (i != 0)) && uopsComb[i - 1][0]) && (uopsComb[i - 1][13-:4] == 4'd0)) && (uopsComb[i - 1][19-:6] == 6'd0)) && uopsComb[i - 1][25]) && (uopsComb[i - 1][35-:5] == uop[35-:5])) && (uop[35-:5] != 0)) && (uopsComb[i - 1][67-:32] != 0)) begin
 									uop[24-:5] = uopsComb[i - 1][24-:5];
 									uop[67:56] = uopsComb[i - 1][47:36];
 									validMask[i - 1] = 0;
+									$display("fused at %x", IN_instrs[(i * 70) + 37-:31]);
 									case (instr[14-:3])
 										0: uop[19-:6] = 6'd46;
 										1: uop[19-:6] = 6'd47;
@@ -194,7 +215,6 @@ module InstrDecoder (
 										6: uop[19-:6] = 6'd14;
 										7: uop[19-:6] = 6'd15;
 									endcase
-								invalidEnc = (uop[19-:6] == 2) || (uop[19-:6] == 3);
 							end
 							7'b0001111:
 								if (instr[14-:3] == 0) begin
@@ -451,11 +471,25 @@ module InstrDecoder (
 										uop[13-:4] = 4'd0;
 									end
 								end
-								else if (instr[31-:7] == 7'b0010100)
+								else if (instr[31-:7] == 7'b0010100) begin
 									if (instr[14-:3] == 3'b001) begin
 										uop[19-:6] = 6'd45;
 										uop[13-:4] = 4'd0;
 									end
+								end
+								else if (IN_enCustom && (instr[31-:7] == 7'b1000000)) begin
+									invalidEnc = 0;
+									uop[13-:4] = 4'd1;
+									case (instr[14-:3])
+										0: uop[19-:6] = 6'd5;
+										1: uop[19-:6] = 6'd6;
+										2: uop[19-:6] = 6'd7;
+										4: uop[19-:6] = 6'd8;
+										5: uop[19-:6] = 6'd9;
+										6: invalidEnc = 1;
+										7: invalidEnc = 1;
+									endcase
+								end
 							end
 							7'b1010011:
 								if (i32[26-:2] == 2'b00) begin
@@ -604,7 +638,7 @@ module InstrDecoder (
 								uop[13-:4] = 4'd0;
 								uop[67-:32] = {{23 {i16[12]}}, i16[12], i16[6:5], i16[2], i16[11:10], i16[4:3], 1'b0};
 								uop[35-:5] = {2'b01, i16[9-:3]};
-								if ((((((DO_FUSE && (i != 0)) && uopsComb[i - 1][0]) && (uopsComb[i - 1][13-:4] == 4'd0)) && (uopsComb[i - 1][19-:6] == 6'd0)) && uopsComb[i - 1][25]) && (uopsComb[i - 1][35-:5] == uop[35-:5])) begin
+								if (((((((DO_FUSE && (i != 0)) && uopsComb[i - 1][0]) && (uopsComb[i - 1][13-:4] == 4'd0)) && (uopsComb[i - 1][19-:6] == 6'd0)) && uopsComb[i - 1][25]) && (uopsComb[i - 1][35-:5] == uop[35-:5])) && (uop[35-:5] != 0)) begin
 									uop[24-:5] = uopsComb[i - 1][24-:5];
 									uop[67:56] = uopsComb[i - 1][47:36];
 									validMask[i - 1] = 0;
@@ -617,7 +651,7 @@ module InstrDecoder (
 								uop[13-:4] = 4'd0;
 								uop[67-:32] = {{23 {i16[12]}}, i16[12], i16[6:5], i16[2], i16[11:10], i16[4:3], 1'b0};
 								uop[35-:5] = {2'b01, i16[9-:3]};
-								if ((((((DO_FUSE && (i != 0)) && uopsComb[i - 1][0]) && (uopsComb[i - 1][13-:4] == 4'd0)) && (uopsComb[i - 1][19-:6] == 6'd0)) && uopsComb[i - 1][25]) && (uopsComb[i - 1][35-:5] == uop[35-:5])) begin
+								if (((((((DO_FUSE && (i != 0)) && uopsComb[i - 1][0]) && (uopsComb[i - 1][13-:4] == 4'd0)) && (uopsComb[i - 1][19-:6] == 6'd0)) && uopsComb[i - 1][25]) && (uopsComb[i - 1][35-:5] == uop[35-:5])) && (uop[35-:5] != 0)) begin
 									uop[24-:5] = uopsComb[i - 1][24-:5];
 									uop[67:56] = uopsComb[i - 1][47:36];
 									validMask[i - 1] = 0;

@@ -128,7 +128,7 @@ set ::env(GRT_OVERFLOW_ITERS) 60
 set ::env(GRT_ALLOW_CONGESTION) 1
 
 set ::env(GLB_RESIZER_TIMING_OPTIMIZATIONS) 0
-set ::env(GRT_RESIZER_TIMING_OPTIMIZATIONS) 0
+set ::env(GRT_RESIZER_TIMING_OPTIMIZATIONS) 0 
 
 # set ::env(GLB_RT_MAXLAYER) 5
 set ::env(RT_MAX_LAYER) {met4}
@@ -139,13 +139,13 @@ set ::env(FP_PDN_CHECK_NODES) 0
 
 set ::env(FP_CORE_UTIL) 40
 set ::env(PL_BASIC_PLACEMENT) 0
-set ::env(PL_TARGET_DENSITY) 0.25
+set ::env(PL_TARGET_DENSITY) 0.27
 set ::env(SYNTH_STRATEGY) "DELAY 4"
 
 set ::env(PL_TIME_DRIVEN) 1
 set ::env(PL_ROUTABILITY_DRIVEN) 1
 set ::env(PL_RESIZER_DESIGN_OPTIMIZATIONS) 1
-set ::env(PL_RESIZER_TIMING_OPTIMIZATIONS) 0
+set ::env(PL_RESIZER_TIMING_OPTIMIZATIONS) 0 
 
 # 2 works, 4 kinda works but often fails detailed placement
 set ::env(DIODE_INSERTION_STRATEGY) 4

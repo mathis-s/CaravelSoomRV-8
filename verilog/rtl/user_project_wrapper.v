@@ -81,6 +81,10 @@ module user_project_wrapper #(
 /*--------------------------------------*/
 /* User project is instantiated  here   */
 /*--------------------------------------*/
+wire CORE_SPI_cs;
+wire CORE_SPI_mosi;
+wire CORE_SPI_miso;
+wire CORE_SPI_clk;
 
 wire EXT_oen;
 wire EXT_en;
@@ -88,11 +92,17 @@ wire[31:0] EXT_busOut;
 wire[31:0] EXT_busIn;
 
 // 32x bus, clk, 4x dc, en
-assign io_oeb = ~{{32{EXT_oen}}, 1'b1, 4'b0, 1'b1};
+assign io_oeb = ~{{32{EXT_oen}}, 6'b111011};
 assign io_out[0] = user_clock2;
+assign io_out[1] = CORE_SPI_mosi;
+assign io_out[2] = 1'b0;//CORE_SPI_miso;
+assign io_out[3] = CORE_SPI_cs;
+assign io_out[4] = CORE_SPI_clk;
 assign io_out[5] = EXT_en;
 assign io_out[37:6] = EXT_busOut;
 assign EXT_busIn = io_in[37:6];
+
+assign CORE_SPI_miso = io_in[2];
 
 wire[127:0] CORE_instrReadData;
 wire[27:0] CORE_instrReadAddr;
@@ -107,19 +117,33 @@ wire[29:0] CORE_writeAddr;
 wire[31:0] CORE_writeData;
 wire[3:0] CORE_writeMask;
 
+
 wire CORE_halt;
 
+reg[15:0] enWait;
 reg en;
+reg coreRst;
 always@(posedge user_clock2) begin
-    if (wb_rst_i)
+    if (wb_rst_i) begin
         en <= 1;
-    else if (CORE_halt)
-        en <= 0;
+        enWait <= 16'hFFFF;
+        coreRst <= 1;
+    end
+    else if (enWait != 0) begin
+        enWait <= enWait - 1;
+        coreRst <= 1;
+        en <= 1;
+    end
+    else begin
+        coreRst <= 0;
+        if (!coreRst && CORE_halt)
+            en <= 0;
+    end
 end
 Core core
 (
     .clk(user_clock2),
-    .rst(wb_rst_i),
+    .rst(coreRst),
     .en(en),
 
     .IN_instrRaw(CORE_instrReadData),
@@ -136,10 +160,11 @@ Core core
 	.OUT_instrReadEnable(CORE_instrReadEnable),
 
 	.OUT_halt(CORE_halt),
-
-	.OUT_SPI_clk(),
-	.OUT_SPI_mosi(),
-	.IN_SPI_miso(0),
+    
+    .OUT_SPI_cs(CORE_SPI_cs),
+	.OUT_SPI_clk(CORE_SPI_clk),
+	.OUT_SPI_mosi(CORE_SPI_mosi),
+	.IN_SPI_miso(CORE_SPI_miso),
 
 	.OUT_MC_ce(MC_ce),
 	.OUT_MC_we(MC_we),
@@ -165,6 +190,11 @@ wire[2*4-1:0] MC_CACHE_wm;
 wire[2*10-1:0] MC_CACHE_addr;
 wire[2*32-1:0] MC_CACHE_wdata;
 wire[2*32-1:0] MC_CACHE_rdata;
+
+//always@(posedge user_clock2) begin
+//    if (!CORE_writeEnable && CORE_writeMask == 4'b0001 && CORE_writeAddr == 30'h3F800000)
+//        $write("%c", CORE_writeData[7:0]);
+//end
 
 MemoryController memc
 (

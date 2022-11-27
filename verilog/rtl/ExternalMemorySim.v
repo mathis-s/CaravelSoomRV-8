@@ -17,6 +17,8 @@ module ExternalMemorySim (
 	reg [2:0] waitCycles;
 
     initial begin
+        for (i = 0; i < SIZE; i=i+1)
+            mem[i] = 0;
         $readmemh("program.hex", mem);
         $display("First instruction: %x", mem[0]);
     end

@@ -3,6 +3,8 @@ module StoreAGU (
 	rst,
 	en,
 	stall,
+	IN_mode,
+	IN_wmask,
 	IN_branch,
 	OUT_zcFwd,
 	IN_uop,
@@ -13,25 +15,29 @@ module StoreAGU (
 	input wire rst;
 	input wire en;
 	input wire stall;
+	input wire [7:0] IN_mode;
+	input wire [63:0] IN_wmask;
 	input wire [75:0] IN_branch;
 	output wire [39:0] OUT_zcFwd;
 	input wire [198:0] IN_uop;
 	output reg [87:0] OUT_uop;
 	output reg [162:0] OUT_aguOp;
 	integer i;
-	wire [31:0] dataRes = IN_uop[166-:32] + {{20 {IN_uop[102]}}, IN_uop[102:91]};
-	assign OUT_zcFwd[0] = IN_uop[0] && (IN_uop[57-:5] != 0);
-	assign OUT_zcFwd[7-:7] = IN_uop[64-:7];
-	assign OUT_zcFwd[39-:32] = dataRes;
-	wire [31:0] addr = IN_uop[198-:32] + {{20 {IN_uop[82]}}, IN_uop[82:71]};
+	wire [31:0] addrSum = IN_uop[198-:32] + {{20 {IN_uop[82]}}, IN_uop[82:71]};
+	wire [31:0] addr = (IN_uop[70-:6] >= 6'd7 ? IN_uop[198-:32] : addrSum);
 	reg except;
-	always @(*)
+	always @(*) begin
 		case (IN_uop[70-:6])
-			6'd0: except = addr == 0;
-			6'd1: except = (addr == 0) || addr[0];
-			6'd6, 6'd2: except = (addr == 0) || (addr[0] || addr[1]);
+			6'd7, 6'd0: except = addr == 0;
+			6'd8, 6'd1: except = (addr == 0) || addr[0];
+			6'd6, 6'd9, 6'd2: except = (addr == 0) || (addr[0] || addr[1]);
 			default: except = 0;
 		endcase
+		if ((addr[31:24] == 8'hff) && IN_mode[3'd4])
+			except = 1;
+		if (!IN_wmask[addr[31:26]] && IN_mode[3'd1])
+			except = 1;
+	end
 	always @(posedge clk) begin
 		OUT_uop[0] <= 0;
 		if (rst)
@@ -55,9 +61,10 @@ module StoreAGU (
 			OUT_uop[36-:32] <= IN_uop[134-:32];
 			OUT_uop[4-:3] <= (except ? 3'd5 : 3'd0);
 			OUT_uop[1] <= IN_uop[1];
+			OUT_uop[87-:32] <= addrSum;
 			OUT_uop[0] <= 1;
 			case (IN_uop[70-:6])
-				6'd0: begin
+				6'd0, 6'd7: begin
 					OUT_aguOp[89] <= 0;
 					case (addr[1:0])
 						0: begin
@@ -78,7 +85,7 @@ module StoreAGU (
 						end
 					endcase
 				end
-				6'd1: begin
+				6'd1, 6'd8: begin
 					OUT_aguOp[89] <= 0;
 					case (addr[1])
 						0: begin
@@ -91,13 +98,7 @@ module StoreAGU (
 						end
 					endcase
 				end
-				6'd6: begin
-					OUT_aguOp[89] <= 0;
-					OUT_aguOp[98-:4] <= 4'b1111;
-					OUT_aguOp[130-:32] <= dataRes;
-					OUT_uop[87-:32] <= dataRes;
-				end
-				6'd2: begin
+				6'd2, 6'd9: begin
 					OUT_aguOp[89] <= 0;
 					OUT_aguOp[98-:4] <= 4'b1111;
 					OUT_aguOp[130-:32] <= IN_uop[166-:32];

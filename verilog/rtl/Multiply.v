@@ -21,7 +21,7 @@ module Multiply (
 	assign OUT_busy = 0;
 	always @(posedge clk)
 		if (rst) begin
-			for (i = 0; i < NUM_STAGES; i = i + 1)
+			for (i = 0; i < (NUM_STAGES + 1); i = i + 1)
 				pl[i][0] <= 0;
 			OUT_uop[0] <= 0;
 		end

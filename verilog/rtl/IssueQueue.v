@@ -62,25 +62,36 @@ module IssueQueue (
 	reg [32:0] reservedWBs;
 	reg newAvailA [SIZE - 1:0];
 	reg newAvailB [SIZE - 1:0];
+	reg newAvailA_dl [SIZE - 1:0];
+	reg newAvailB_dl [SIZE - 1:0];
 	always @(*)
 		for (i = 0; i < SIZE; i = i + 1)
 			begin
 				newAvailA[i] = 0;
 				newAvailB[i] = 0;
+				newAvailA_dl[i] = 0;
+				newAvailB_dl[i] = 0;
 				for (j = 0; j < RESULT_BUS_COUNT; j = j + 1)
-					if (j != 3) begin
+					begin
 						if (IN_resultValid[j] && (queue[i][67-:7] == IN_resultUOp[(j * 88) + 55-:7]))
 							newAvailA[i] = 1;
 						if (IN_resultValid[j] && (queue[i][59-:7] == IN_resultUOp[(j * 88) + 55-:7]))
 							newAvailB[i] = 1;
 					end
 				for (j = 0; j < 2; j = j + 1)
-					if ((IN_issueValid[j] && (IN_issueUOps[(j * 101) + 4-:4] == 4'd0)) && (IN_issueUOps[(j * 101) + 37-:5] != 0)) begin
-						if (queue[i][67-:7] == IN_issueUOps[(j * 101) + 44-:7])
-							newAvailA[i] = 1;
-						if (queue[i][59-:7] == IN_issueUOps[(j * 101) + 44-:7])
-							newAvailB[i] = 1;
-					end
+					if (IN_issueValid[j] && (IN_issueUOps[(j * 101) + 37-:5] != 0))
+						if (IN_issueUOps[(j * 101) + 4-:4] == 4'd0) begin
+							if (queue[i][67-:7] == IN_issueUOps[(j * 101) + 44-:7])
+								newAvailA[i] = 1;
+							if (queue[i][59-:7] == IN_issueUOps[(j * 101) + 44-:7])
+								newAvailB[i] = 1;
+						end
+						else if ((IN_issueUOps[(j * 101) + 4-:4] == 4'd5) || (IN_issueUOps[(j * 101) + 4-:4] == 4'd7)) begin
+							if (queue[i][67-:7] == IN_issueUOps[(j * 101) + 44-:7])
+								newAvailA_dl[i] = 1;
+							if (queue[i][59-:7] == IN_issueUOps[(j * 101) + 44-:7])
+								newAvailB_dl[i] = 1;
+						end
 				if (IN_loadForwardValid && (queue[i][67-:7] == IN_loadForwardTag))
 					newAvailA[i] = 1;
 				if (IN_loadForwardValid && (queue[i][59-:7] == IN_loadForwardTag))
@@ -97,8 +108,8 @@ module IssueQueue (
 	always @(posedge clk) begin
 		for (i = 0; i < SIZE; i = i + 1)
 			begin
-				queue[i][68] <= queue[i][68] | newAvailA[i];
-				queue[i][60] <= queue[i][60] | newAvailB[i];
+				queue[i][68] <= (queue[i][68] | newAvailA[i]) | newAvailA_dl[i];
+				queue[i][60] <= (queue[i][60] | newAvailB[i]) | newAvailB_dl[i];
 			end
 		reservedWBs <= {1'b0, reservedWBs[32:1]};
 		if (rst) begin
@@ -145,8 +156,8 @@ module IssueQueue (
 							for (j = i; j < (SIZE - 1); j = j + 1)
 								begin
 									queue[j] <= queue[j + 1];
-									queue[j][68] <= queue[j + 1][68] | newAvailA[j + 1];
-									queue[j][60] <= queue[j + 1][60] | newAvailB[j + 1];
+									queue[j][68] <= (queue[j + 1][68] | newAvailA[j + 1]) | newAvailA_dl[j + 1];
+									queue[j][60] <= (queue[j + 1][60] | newAvailB[j + 1]) | newAvailB_dl[j + 1];
 								end
 							insertIndex = insertIndex - 1;
 							if ((queue[i][4-:4] == FU1) && (FU1_DLY > 0))

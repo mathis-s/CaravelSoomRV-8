@@ -19,6 +19,7 @@ module ROB (
 	OUT_curFetchID,
 	IN_irq,
 	IN_MEM_busy,
+	IN_allowBreak,
 	OUT_fence,
 	OUT_clearICache,
 	OUT_disableIFetch,
@@ -49,6 +50,7 @@ module ROB (
 	output reg [4:0] OUT_curFetchID;
 	input wire IN_irq;
 	input wire IN_MEM_busy;
+	input wire IN_allowBreak;
 	output reg OUT_fence;
 	output reg OUT_clearICache;
 	output wire OUT_disableIFetch;
@@ -161,7 +163,7 @@ module ROB (
 					memoryWait <= 0;
 			pcLookupEntry[1] <= 0;
 			if (pcLookupEntry[1])
-				if (((pcLookupEntry[26-:3] == 3'd4) || (pcLookupEntry[26-:3] == 3'd6)) || (pcLookupEntry[26-:3] == 3'd7)) begin
+				if ((((pcLookupEntry[26-:3] == 3'd4) && IN_allowBreak) || (pcLookupEntry[26-:3] == 3'd6)) || (pcLookupEntry[26-:3] == 3'd7)) begin
 					if (pcLookupEntry[26-:3] == 3'd4)
 						OUT_halt <= 1;
 					else if (pcLookupEntry[26-:3] == 3'd7)
@@ -181,7 +183,7 @@ module ROB (
 					OUT_branch[16-:16] <= baseIndexHist;
 					stop <= 0;
 				end
-				else if ((pcLookupEntry[26-:3] == 3'd5) || externalIRQ) begin
+				else if ((((pcLookupEntry[26-:3] == 3'd4) && !IN_allowBreak) || (pcLookupEntry[26-:3] == 3'd5)) || externalIRQ) begin
 					OUT_irqTaken <= 1;
 					OUT_branch[0] <= 1;
 					OUT_branch[75-:32] <= IN_irqAddr;
