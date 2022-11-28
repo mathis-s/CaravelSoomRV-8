@@ -139,7 +139,7 @@ set ::env(FP_PDN_CHECK_NODES) 0
 
 set ::env(FP_CORE_UTIL) 40
 set ::env(PL_BASIC_PLACEMENT) 0
-set ::env(PL_TARGET_DENSITY) 0.27
+set ::env(PL_TARGET_DENSITY) 0.271
 set ::env(SYNTH_STRATEGY) "DELAY 4"
 
 set ::env(PL_TIME_DRIVEN) 1
