@@ -109,6 +109,8 @@ set ::env(PL_MACRO_HALO) {20 20}
 set ::env(PL_MACRO_CHANNEL) {20 20}
 #set ::env(FP_PDN_HORIZONTAL_HALO) {20}
 #set ::env(FP_PDN_VERTICAL_HALO) {20}
+#set ::env(FP_TAP_HORIZONTAL_HALO) {30}
+#set ::env(FP_TAP_VERTICAL_HALO) {30}
 
 ### Black-box verilog and views
 set ::env(VERILOG_FILES_BLACKBOX) "\
@@ -139,18 +141,22 @@ set ::env(FP_PDN_CHECK_NODES) 0
 
 set ::env(FP_CORE_UTIL) 40
 set ::env(PL_BASIC_PLACEMENT) 0
-set ::env(PL_TARGET_DENSITY) 0.29
+set ::env(PL_TARGET_DENSITY) 0.28
 set ::env(SYNTH_STRATEGY) "DELAY 4"
 
 set ::env(PL_TIME_DRIVEN) 1
 set ::env(PL_ROUTABILITY_DRIVEN) 1
 set ::env(PL_RESIZER_DESIGN_OPTIMIZATIONS) 1
-set ::env(PL_RESIZER_TIMING_OPTIMIZATIONS) 0 
+set ::env(PL_RESIZER_TIMING_OPTIMIZATIONS) 0
+
+# Reduce routing on L2 for Metal Minimum Clear Area check
+set ::env(GLB_RT_L2_ADJUSTMENT) 0.2
 
 # 2 works, 4 kinda works but often fails detailed placement
 set ::env(DIODE_INSERTION_STRATEGY) 4
 
 set ::env(ROUTING_OPT_ITERS) 200
+
 
 # The following is because there are no std cells in the example wrapper project.
 #set ::env(SYNTH_TOP_LEVEL) 1
