@@ -151,6 +151,8 @@ set ::env(PL_RESIZER_TIMING_OPTIMIZATIONS) 0
 
 # Reduce routing on L2 for Metal Minimum Clear Area check
 set ::env(GLB_RT_L2_ADJUSTMENT) 0.2
+set ::env(GRT_ADJUSTMENT) {0.3}
+set ::env(GRT_LAYER_ADJUSTMENTS) {0.99,0,0,0,0.2,0}
 
 # 2 works, 4 kinda works but often fails detailed placement
 set ::env(DIODE_INSERTION_STRATEGY) 4
